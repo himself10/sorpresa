@@ -1,0 +1,21 @@
+@keyframes entry-main {
+    0% {
+        transform: translateY(-35px);
+        opacity: 0%;
+    }
+
+    40% {
+        transform: translateY(-35px);
+        opacity: 0%;
+    }
+
+
+    100% {
+        transform: translateY(0px);
+        opacity: 100%;
+    }
+}
+
+[transition-style="entry-main"] {
+    animation: 1.4s cubic-bezier(.37,.67,.42,2.58) 0.9s entry-main both;
+}
