@@ -38,10 +38,39 @@ type Props = {
     noLabel: string;
 };
 
-export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props) {
-    const START_REMAINING = 12;
+import { gsap } from "gsap";
+// import { HeartIcon } from "@heroicons/react/24/solid";
+
+export function EvasiveButtons({
+    accepted,
+    onAccept,
+    yesLabel,
+    noLabel,
+}: Props) {
+    /* ---------------- GSAP entrada ---------------- */
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        gsap.from(containerRef.current, {
+            delay: 3,
+            duration: 0.9,
+            y: 15,
+            opacity: 0,
+            filter: "blur(8px)",
+            ease: "power3.out",
+            clearProps: "transform,filter", // evita conflictos con CSS
+        });
+    }, []);
+
+    /* ---------------- lógica del juego ---------------- */
+    const START_REMAINING = 5;
     const [remaining, setRemaining] = useState(START_REMAINING);
-    const [finale, setFinale] = useState<"idle" | "inflate" | "explode" | "done">("idle");
+    const [finale, setFinale] = useState<
+        "idle" | "inflate" | "explode" | "done"
+    >("idle");
+
     const timeoutsRef = useRef<number[]>([]);
     const lastNoPressAtRef = useRef<number | null>(null);
     const rapidNoStreakRef = useRef(0);
@@ -54,49 +83,59 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
 
     useEffect(() => {
         return () => {
-            timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+            timeoutsRef.current.forEach(clearTimeout);
             timeoutsRef.current = [];
         };
     }, []);
 
     const triggerFinale = () => {
         if (finale !== "idle") return;
+
         setFinale("inflate");
-        // 1) “Sí” se agranda (ancho + escala) y empuja al “No”
+
         schedule(() => setFinale("explode"), 180);
-        // 2) “No” explota y desaparece
         schedule(() => setFinale("done"), 650);
-        // Si spamearon “No” rápido, al final “cuenta como Sí”.
+
         if (forceAcceptRef.current) {
-            schedule(() => onAccept(), 520);
+            schedule(onAccept, 520);
         }
     };
 
     const handleNo = () => {
-        if (accepted) return;
-        if (finale !== "idle") return;
+        if (accepted || finale !== "idle") return;
+
         const now = Date.now();
-        if (lastNoPressAtRef.current !== null && now - lastNoPressAtRef.current < 140) {
+        if (
+            lastNoPressAtRef.current &&
+            now - lastNoPressAtRef.current < 140
+        ) {
             rapidNoStreakRef.current += 1;
         } else {
             rapidNoStreakRef.current = 0;
         }
+
         lastNoPressAtRef.current = now;
-        // Tras varios clicks muy seguidos, marcamos “misclick” forzado al final.
+
         if (rapidNoStreakRef.current >= 3) {
             forceAcceptRef.current = true;
         }
+
         if (remaining > 1) {
             setRemaining((r) => Math.max(1, r - 1));
             return;
         }
-        // Click cuando llega a 1
+
         triggerFinale();
     };
 
+    /* ---------------- render ---------------- */
     return (
-        <div className="mx-auto w-full max-w-sm select-none">
+        <div
+            ref={containerRef}
+            className="mx-auto w-full max-w-sm select-none"
+        >
             <div className="flex min-h-16 items-center justify-center gap-4">
+                {/* YES */}
                 <button
                     onClick={onAccept}
                     type="button"
@@ -104,8 +143,7 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
                         "inline-flex items-center justify-center gap-2 rounded-full text-white",
                         "bg-[linear-gradient(90deg,rgba(255,79,216,0.95),rgba(236,72,153,0.95),rgba(168,85,247,0.85))]",
                         "focus:outline-none focus-visible:ring-4 focus-visible:ring-fuchsia-300/45",
-                        // Importante: al inflarse, ocupa casi todo para provocar misclick.
-                        "transition-[transform,padding] duration-[0.9s]",
+                        "transition-[transform,padding] duration-[900ms]",
                         "active:scale-[0.98]",
                         accepted ? "opacity-90" : "hover:scale-[1.02] cursor-pointer",
                         finale === "inflate"
@@ -123,6 +161,7 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
                     <span className="tracking-wide">{yesLabel}</span>
                 </button>
 
+                {/* NO */}
                 {finale !== "done" && (
                     <button
                         onClick={handleNo}
@@ -134,9 +173,13 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
                             "focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/25",
                             "transition-[transform,background-color,opacity,filter] duration-150",
                             "hover:bg-white/10",
-                            accepted ? "opacity-40 cursor-not-allowed" : "cursor-no-drop",
+                            accepted
+                                ? "opacity-40 cursor-not-allowed"
+                                : "cursor-no-drop",
                             finale === "inflate" ? "translate-x-6 opacity-80" : "",
-                            finale === "explode" ? "animate-no-explode pointer-events-none" : "",
+                            finale === "explode"
+                                ? "animate-no-explode pointer-events-none"
+                                : "",
                         ].join(" ")}
                         aria-label="No (cuenta regresiva hasta 1)"
                     >
@@ -147,7 +190,9 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
 
             {!accepted && finale !== "done" && (
                 <p className="mt-3 text-center text-sm text-white/80">
-                    Falta <span className="font-semibold text-white">{remaining}</span>. Hay sorpresa al final.
+                    Falta{" "}
+                    <span className="font-semibold text-white">{remaining}</span>.
+                    Hay sorpresa al final.
                 </p>
             )}
         </div>
