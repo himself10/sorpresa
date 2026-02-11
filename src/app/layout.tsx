@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import "./styles/globals.css";
 
-const siteTitle = "Una pregunta";
-const siteDescription =
-  "Algo corto. Algo inesperado. Entra sin suponer demasiado.";
+const siteTitle = "A question.com";
+const siteDescription = "Esperando...";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),

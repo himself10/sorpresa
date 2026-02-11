@@ -134,7 +134,7 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
                             "focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/25",
                             "transition-[transform,background-color,opacity,filter] duration-150",
                             "hover:bg-white/10",
-                            accepted ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
+                            accepted ? "opacity-40 cursor-not-allowed" : "cursor-no-drop",
                             finale === "inflate" ? "translate-x-6 opacity-80" : "",
                             finale === "explode" ? "animate-no-explode pointer-events-none" : "",
                         ].join(" ")}
