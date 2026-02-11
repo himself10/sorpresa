@@ -1,8 +1,10 @@
-## Sorpresa web (Next.js + TypeScript)
+# Sorpresa web (Next.js + TypeScript)
+
+![Preview](public/assets/image.png)
 
 Una mini experiencia interactiva, corta y directa. Entra sin expectativas.
 
-### Qué incluye
+## Qué incluye
 
 - **Next.js (App Router) + TypeScript**
 - **React 19**
@@ -15,29 +17,6 @@ Una mini experiencia interactiva, corta y directa. Entra sin expectativas.
   - Si presionas **"No"** muy rápido, puede **terminar contando como "Sí"**
   - **Rastro del cursor** (en móvil se mueve solo), en `src/app/components/CursorTrail.tsx`
 - **Estilos** con Tailwind v4 (vía `@import "tailwindcss";`) + CSS propio en `src/app/styles/`
-
-### Requisitos
-
-- **Node.js 20+** (recomendado)
-- npm
-
-### Empezar (desarrollo)
-
-```bash
-npm install
-npm run dev
-```
-
-Luego abre `http://localhost:3000`.
-
-### Scripts
-
-```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-```
 
 ### Estructura rápida
 
@@ -62,19 +41,8 @@ Coloca estos archivos en:
 - `public/assets/icono.png` (icono / favicon)
 - `public/assets/image.png` (imagen para Open Graph / Twitter)
 
-Preview (para compartir):
-
-![Preview](public/assets/image.png)
-
-### Deploy
-
-Puedes desplegarlo en **Vercel** (recomendado para Next.js) o en cualquier entorno que ejecute `next start`:
-
-```bash
-npm run build
-npm run start
-```
-
 ### Licencia
 
 Este proyecto está bajo la licencia **Apache 2.0**. Ver `LICENSE`.
+
+> **Desarrollado por Fravelz**
