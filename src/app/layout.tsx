@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "https://github.com/himself10/sorpresa/blob/main/assets/image.png?raw=true",
+        url: "https://github.com/himself10/sorpresa/blob/main/public/assets/image.png?raw=true",
         width: 1200,
         height: 630,
         alt: "Una pista visual, sin spoilers.",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
-    images: ["https://github.com/himself10/sorpresa/blob/main/assets/image.png?raw=true"],
+    images: ["https://github.com/himself10/sorpresa/blob/main/public/assets/image.png?raw=true"],
   },
   robots: {
     index: false,
