@@ -1,12 +1,10 @@
 "use client";
 
-import { CursorTrail } from "./components/CursorTrail";
 import { Main } from "./layout/Main";
 
 export default function Home() {
   return (
     <div className="bg-pink-100">
-      <CursorTrail />
       <div transition-style="in:circle:hesitate" className="relative bg-[#120019]">
 
         {/* Background - Grid */}
