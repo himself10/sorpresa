@@ -13,6 +13,7 @@ Una mini experiencia interactiva, corta y directa. Entra sin expectativas.
 - **Una sola página**: `src/app/page.tsx`
 - **UI centrada** (vertical y horizontal), con **fondo oscuro + grid animada**
 - **Tarjeta principal** con CTA **"Sí"** y **"No"**
+  
 - **Interacciones en cliente**:
   - El botón **"No"** tiene **cuenta regresiva** (10 → 1)
   - Al final ocurre una secuencia: **"Sí"** invade el espacio, **"No"** es empujado y **explota**
