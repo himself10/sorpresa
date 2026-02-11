@@ -2,6 +2,8 @@
 
 ![Preview](public/assets/image.png)
 
+Ir: https://himself10.github.io/sorpresa/
+
 Una mini experiencia interactiva, corta y directa. Entra sin expectativas.
 
 ## Qué incluye
