@@ -121,9 +121,7 @@ export function EvasiveButtons({
         }
 
         if (remaining > 1) {
-            setRemaining((r) => Math.max(1, r - 1));
-            return;
-        }
+            setRemaining((r) => Math.max(1, r - 1)); return; }
 
         triggerFinale();
     };
