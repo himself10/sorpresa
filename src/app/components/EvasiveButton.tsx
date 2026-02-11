@@ -39,10 +39,13 @@ type Props = {
 };
 
 export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props) {
-    const START_REMAINING = 10;
+    const START_REMAINING = 12;
     const [remaining, setRemaining] = useState(START_REMAINING);
     const [finale, setFinale] = useState<"idle" | "inflate" | "explode" | "done">("idle");
     const timeoutsRef = useRef<number[]>([]);
+    const lastNoPressAtRef = useRef<number | null>(null);
+    const rapidNoStreakRef = useRef(0);
+    const forceAcceptRef = useRef(false);
 
     const schedule = (fn: () => void, ms: number) => {
         const id = window.setTimeout(fn, ms);
@@ -63,11 +66,26 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
         schedule(() => setFinale("explode"), 180);
         // 2) “No” explota y desaparece
         schedule(() => setFinale("done"), 650);
+        // Si spamearon “No” rápido, al final “cuenta como Sí”.
+        if (forceAcceptRef.current) {
+            schedule(() => onAccept(), 520);
+        }
     };
 
     const handleNo = () => {
         if (accepted) return;
         if (finale !== "idle") return;
+        const now = Date.now();
+        if (lastNoPressAtRef.current !== null && now - lastNoPressAtRef.current < 140) {
+            rapidNoStreakRef.current += 1;
+        } else {
+            rapidNoStreakRef.current = 0;
+        }
+        lastNoPressAtRef.current = now;
+        // Tras varios clicks muy seguidos, marcamos “misclick” forzado al final.
+        if (rapidNoStreakRef.current >= 3) {
+            forceAcceptRef.current = true;
+        }
         if (remaining > 1) {
             setRemaining((r) => Math.max(1, r - 1));
             return;
@@ -86,16 +104,17 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
                         "inline-flex items-center justify-center gap-2 rounded-full text-white",
                         "bg-[linear-gradient(90deg,rgba(255,79,216,0.95),rgba(236,72,153,0.95),rgba(168,85,247,0.85))]",
                         "focus:outline-none focus-visible:ring-4 focus-visible:ring-fuchsia-300/45",
-                        "transition-[transform,padding] duration-150",
+                        // Importante: al inflarse, ocupa casi todo para provocar misclick.
+                        "transition-[transform,padding] duration-[0.9s]",
                         "active:scale-[0.98]",
                         accepted ? "opacity-90" : "hover:scale-[1.02] cursor-pointer",
                         finale === "inflate"
                             ? [
-                                  "animate-yes-surge",
-                                  "px-10 py-4 sm:px-12",
-                                  "shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_0_26px_rgba(236,72,153,0.25)]",
-                                  "hover:scale-100",
-                              ].join(" ")
+                                "animate-yes-surge",
+                                "px-[100vw] py-4",
+                                "shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_0_26px_rgba(236,72,153,0.25)]",
+                                "hover:scale-100",
+                            ].join(" ")
                             : "px-6 py-3",
                     ].join(" ")}
                     aria-label={yesLabel}
@@ -128,7 +147,7 @@ export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props)
 
             {!accepted && finale !== "done" && (
                 <p className="mt-3 text-center text-sm text-white/80">
-                    Falta <span className="font-semibold text-white">{remaining}</span>.
+                    Falta <span className="font-semibold text-white">{remaining}</span>. Hay sorpresa al final.
                 </p>
             )}
         </div>
