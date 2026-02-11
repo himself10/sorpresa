@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type SVGProps } from "react";
+import { useEffect, useRef, useState, type SVGProps } from "react";
 
 function HeartIcon(props: SVGProps<SVGSVGElement>) {
     return (
@@ -39,86 +39,117 @@ type Props = {
 };
 
 export function EvasiveButtons({ accepted, onAccept, yesLabel, noLabel }: Props) {
-    const [noPressCount, setNoPressCount] = useState(0);
+    const START_REMAINING = 12;
+    const [remaining, setRemaining] = useState(START_REMAINING);
+    const [finale, setFinale] = useState<"idle" | "inflate" | "explode" | "done">("idle");
+    const timeoutsRef = useRef<number[]>([]);
+    const lastNoPressAtRef = useRef<number | null>(null);
+    const rapidNoStreakRef = useRef(0);
+    const forceAcceptRef = useRef(false);
 
-    // Crece con cada intento de click en "No".
-    const noScale = useMemo(() => {
-        // Crecimiento lineal controlado (se siente “rápido” sin romper layout al instante).
-        const scale = 1 + noPressCount * 0.35;
-        return Math.min(6, scale);
-    }, [noPressCount]);
+    const schedule = (fn: () => void, ms: number) => {
+        const id = window.setTimeout(fn, ms);
+        timeoutsRef.current.push(id);
+    };
 
-    const noIsFullscreen = noScale >= 5.0;
+    useEffect(() => {
+        return () => {
+            timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+            timeoutsRef.current = [];
+        };
+    }, []);
+
+    const triggerFinale = () => {
+        if (finale !== "idle") return;
+        setFinale("inflate");
+        // 1) “Sí” se agranda (ancho + escala) y empuja al “No”
+        schedule(() => setFinale("explode"), 180);
+        // 2) “No” explota y desaparece
+        schedule(() => setFinale("done"), 650);
+        // Si spamearon “No” rápido, al final “cuenta como Sí”.
+        if (forceAcceptRef.current) {
+            schedule(() => onAccept(), 520);
+        }
+    };
 
     const handleNo = () => {
         if (accepted) return;
-        // Cuando ya ocupa pantalla, lo hacemos imposible de presionar (no más clicks).
-        if (noIsFullscreen) return;
-        setNoPressCount((c) => c + 1);
+        if (finale !== "idle") return;
+        const now = Date.now();
+        if (lastNoPressAtRef.current !== null && now - lastNoPressAtRef.current < 140) {
+            rapidNoStreakRef.current += 1;
+        } else {
+            rapidNoStreakRef.current = 0;
+        }
+        lastNoPressAtRef.current = now;
+        // Tras varios clicks muy seguidos, marcamos “misclick” forzado al final.
+        if (rapidNoStreakRef.current >= 3) {
+            forceAcceptRef.current = true;
+        }
+        if (remaining > 1) {
+            setRemaining((r) => Math.max(1, r - 1));
+            return;
+        }
+        // Click cuando llega a 1
+        triggerFinale();
     };
 
     return (
-        <div className="relative mx-auto h-16 w-full max-w-sm select-none">
-            <button
-                onClick={onAccept}
-                type="button"
-                className={[
-                    "absolute left-0 top-1/2 -translate-y-1/2",
-                    "inline-flex items-center gap-2 rounded-full px-6 py-3 text-white",
-                    "bg-[linear-gradient(90deg,rgba(255,79,216,0.95),rgba(236,72,153,0.95),rgba(168,85,247,0.85))]",
-                    "transition-transform duration-200 active:scale-[0.98] hover:scale-[1.02]",
-                    "focus:outline-none focus-visible:ring-4 focus-visible:ring-fuchsia-300/45",
-                    accepted ? "opacity-90" : "",
-                ].join(" ")}
-            >
-                <HeartIcon className="h-5 w-5 drop-shadow-[0_0_14px_rgba(236,72,153,0.85)]" />
-                <span className="tracking-wide">{yesLabel}</span>
-            </button>
+        <div className="mx-auto w-full max-w-sm select-none">
+            <div className="flex min-h-16 items-center justify-center gap-4">
+                <button
+                    onClick={onAccept}
+                    type="button"
+                    className={[
+                        "inline-flex items-center justify-center gap-2 rounded-full text-white",
+                        "bg-[linear-gradient(90deg,rgba(255,79,216,0.95),rgba(236,72,153,0.95),rgba(168,85,247,0.85))]",
+                        "focus:outline-none focus-visible:ring-4 focus-visible:ring-fuchsia-300/45",
+                        // Importante: al inflarse, ocupa casi todo para provocar misclick.
+                        "transition-[transform,padding] duration-[0.9s]",
+                        "active:scale-[0.98]",
+                        accepted ? "opacity-90" : "hover:scale-[1.02] cursor-pointer",
+                        finale === "inflate"
+                            ? [
+                                "animate-yes-surge",
+                                "px-[100vw] py-4",
+                                "shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_0_26px_rgba(236,72,153,0.25)]",
+                                "hover:scale-100",
+                            ].join(" ")
+                            : "px-6 py-3",
+                    ].join(" ")}
+                    aria-label={yesLabel}
+                >
+                    <HeartIcon className="h-5 w-5 drop-shadow-[0_0_14px_rgba(236,72,153,0.85)]" />
+                    <span className="tracking-wide">{yesLabel}</span>
+                </button>
 
-            {/* "No" no se mueve: crece con cada click hasta cubrir la pantalla. */}
-            <button
-                onClick={handleNo}
-                type="button"
-                disabled={accepted || noIsFullscreen}
-                style={
-                    noIsFullscreen
-                        ? undefined
-                        : {
-                            transform: `translateY(-50%) scale(${noScale})`,
-                            transformOrigin: "center",
-                        }
-                }
-                className={[
-                    noIsFullscreen
-                        ? [
-                            // Modo “pantalla completa” (decorativo): imposible de presionar.
-                            "fixed inset-0 z-0 pointer-events-none",
-                            "rounded-none",
-                            "bg-[radial-gradient(900px_650px_at_50%_40%,rgba(236,72,153,0.35),transparent_65%),linear-gradient(to_br,#05030a,#08051a,#0a0722)]",
-                            "opacity-95",
-                        ].join(" ")
-                        : [
-                            "absolute right-0 top-1/2",
-                            "inline-flex items-center gap-2 rounded-full px-6 py-3 text-white/90",
+                {finale !== "done" && (
+                    <button
+                        onClick={handleNo}
+                        type="button"
+                        disabled={accepted || finale !== "idle"}
+                        className={[
+                            "inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-white/90",
                             "border border-fuchsia-200/20 bg-white/5 backdrop-blur",
-                            "transition-[transform,background-color,opacity] duration-200",
-                            "hover:bg-white/10",
                             "focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/25",
+                            "transition-[transform,background-color,opacity,filter] duration-150",
+                            "hover:bg-white/10",
                             accepted ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
-                        ].join(" "),
-                ].join(" ")}
-                aria-label={
-                    noIsFullscreen
-                        ? "No (ya es imposible decir que no)"
-                        : "No (crece cada vez que lo presionas)"
-                }
-            >
-                {!noIsFullscreen && (
-                    <>
-                        <p className="tracking-wide">{noLabel}</p>
-                    </>
+                            finale === "inflate" ? "translate-x-6 opacity-80" : "",
+                            finale === "explode" ? "animate-no-explode pointer-events-none" : "",
+                        ].join(" ")}
+                        aria-label="No (cuenta regresiva hasta 1)"
+                    >
+                        <span className="tracking-wide">{noLabel}</span>
+                    </button>
                 )}
-            </button>
+            </div>
+
+            {!accepted && finale !== "done" && (
+                <p className="mt-3 text-center text-sm text-white/80">
+                    Falta <span className="font-semibold text-white">{remaining}</span>. Hay sorpresa al final.
+                </p>
+            )}
         </div>
     );
 }

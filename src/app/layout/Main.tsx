@@ -24,7 +24,8 @@ export function Main() {
                     className={[
                         "relative overflow-hidden rounded-3xl",
                         "border border-white/10 bg-zinc-950/70 backdrop-blur-2xl",
-                        "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]",
+                        // "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]",
+                        "shadow-2xl shadow-[rgba(168,85,247)] w-full max-w-xl",
                         "px-7 py-10 sm:px-10",
                         "transition-transform duration-500",
                         accepted ? "animate-soft-pulse" : "",

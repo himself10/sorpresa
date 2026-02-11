@@ -108,4 +108,54 @@ body {
   .animate-neon-flicker {
     animation: neon-flicker 3.5s ease-in-out infinite;
   }
+
+  /* Secuencia final: “Sí” crece de golpe */
+  @keyframes yes-surge {
+    0% {
+      transform: scale(1);
+    }
+    70% {
+      transform: scale(1.22);
+    }
+    100% {
+      transform: scale(1.12);
+    }
+  }
+
+  .animate-yes-surge {
+    animation: yes-surge 180ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    will-change: transform;
+  }
+
+  /* Secuencia final: “No” explota (desaparece) */
+  @keyframes no-explode {
+    0% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+    }
+    35% {
+      opacity: 1;
+      transform: translateX(14px) scale(1.06);
+      filter: blur(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(44px) scale(0.2);
+      filter: blur(2px);
+    }
+  }
+
+  .animate-no-explode {
+    animation: no-explode 520ms ease-out both;
+    will-change: transform, opacity, filter;
+  }
+}
+
+/* Selection highlight */
+::selection {
+    background-color: #9622e2;
+    /* color de fondo */
+    color: #FFF;
+    /* color del texto */
 }
