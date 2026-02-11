@@ -12,6 +12,12 @@ import { useState } from "react";
 
 export function Main() {
     const [accepted, setAccepted] = useState(false);
+    const [showInstagram, setShowInstagram] = useState(false);
+
+    const accept = () => {
+        setAccepted(true);
+        setShowInstagram(true);
+    };
 
     return (
         <main transition-style="entry-main" className="w-full max-w-xl">
@@ -95,7 +101,8 @@ export function Main() {
                         <div className="mt-8">
                             <EvasiveButtons
                                 accepted={accepted}
-                                onAccept={() => setAccepted(true)}
+                                onAccept={accept}
+                                onReveal={() => setShowInstagram(true)}
                                 yesLabel={romanceCopy.yes}
                                 noLabel={romanceCopy.no}
                             />
@@ -105,7 +112,7 @@ export function Main() {
             </div>
 
             <InstagramToast
-                show={accepted}
+                show={accepted || showInstagram}
                 href="https://www.instagram.com/salva_cot_/"
                 handle="@salva_cot_"
             />

@@ -40,10 +40,17 @@ function InstagramIcon() {
 export function InstagramToast({ show, href, handle }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const reappearTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!show) setDismissed(false);
+    if (!show) {
+      setMuted(false);
+      if (reappearTimeoutRef.current) {
+        window.clearTimeout(reappearTimeoutRef.current);
+        reappearTimeoutRef.current = null;
+      }
+    }
   }, [show]);
 
   useEffect(() => {
@@ -53,7 +60,7 @@ export function InstagramToast({ show, href, handle }: Props) {
     tlRef.current?.kill();
     tlRef.current = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-    if (show && !dismissed) {
+    if (show && !muted) {
       tlRef.current.fromTo(
         el,
         { y: 80, opacity: 0, scale: 0.98, filter: "blur(2px)" },
@@ -74,9 +81,28 @@ export function InstagramToast({ show, href, handle }: Props) {
       tlRef.current?.kill();
       tlRef.current = null;
     };
-  }, [show, dismissed]);
+  }, [show, muted]);
 
-  if (!show || dismissed) return null;
+  useEffect(() => {
+    return () => {
+      if (reappearTimeoutRef.current) {
+        window.clearTimeout(reappearTimeoutRef.current);
+        reappearTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleClose = () => {
+    // No se “cierra” del todo: solo se oculta y vuelve luego.
+    setMuted(true);
+    if (reappearTimeoutRef.current) window.clearTimeout(reappearTimeoutRef.current);
+    reappearTimeoutRef.current = window.setTimeout(() => {
+      setMuted(false);
+      reappearTimeoutRef.current = null;
+    }, 3200);
+  };
+
+  if (!show) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
@@ -84,11 +110,13 @@ export function InstagramToast({ show, href, handle }: Props) {
         ref={elRef}
         role="status"
         aria-live="polite"
+        aria-hidden={muted}
         className={[
           "w-full max-w-md",
           "rounded-2xl p-[1px]",
           "bg-[linear-gradient(90deg,rgba(255,79,216,0.55),rgba(168,85,247,0.45))]",
           "shadow-[0_20px_80px_rgba(0,0,0,0.55)]",
+          muted ? "pointer-events-none" : "",
         ].join(" ")}
       >
         <div
@@ -116,15 +144,15 @@ export function InstagramToast({ show, href, handle }: Props) {
                 {handle}
               </a>
             </div>
-{/* 
+
             <button
               type="button"
-              onClick={() => setDismissed(true)}
+              onClick={handleClose}
               className="rounded-xl px-3 py-2 text-xs text-white/80 hover:bg-white/5"
               aria-label="Cerrar"
             >
               Cerrar
-            </button> */}
+            </button>
           </div>
         </div>
       </div>

@@ -34,6 +34,7 @@ function HeartIcon(props: SVGProps<SVGSVGElement>) {
 type Props = {
     accepted: boolean;
     onAccept: () => void;
+    onReveal?: () => void;
     yesLabel: string;
     noLabel: string;
 };
@@ -44,6 +45,7 @@ import { gsap } from "gsap";
 export function EvasiveButtons({
     accepted,
     onAccept,
+    onReveal,
     yesLabel,
     noLabel,
 }: Props) {
@@ -96,6 +98,9 @@ export function EvasiveButtons({
         schedule(() => setFinale("explode"), 180);
         schedule(() => setFinale("done"), 650);
 
+        // Mostrar “pista” (Instagram) aunque no haya aceptación explícita.
+        if (onReveal) schedule(onReveal, 220);
+
         if (forceAcceptRef.current) {
             schedule(onAccept, 520);
         }
@@ -120,10 +125,12 @@ export function EvasiveButtons({
             forceAcceptRef.current = true;
         }
 
-        if (remaining > 1) {
-            setRemaining((r) => Math.max(1, r - 1)); return; }
-
-        triggerFinale();
+        if (remaining > 0) {
+            const next = Math.max(0, remaining - 1);
+            setRemaining(next);
+            if (next === 0) triggerFinale();
+            return;
+        }
     };
 
     /* ---------------- render ---------------- */
@@ -179,7 +186,7 @@ export function EvasiveButtons({
                                 ? "animate-no-explode pointer-events-none"
                                 : "",
                         ].join(" ")}
-                        aria-label="No (cuenta regresiva hasta 1)"
+                        aria-label="No (cuenta regresiva hasta 0)"
                     >
                         <span className="tracking-wide">{noLabel}</span>
                     </button>
